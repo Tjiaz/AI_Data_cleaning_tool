@@ -8,6 +8,7 @@ import streamlit as st
 
 from cleaner import CleanOptions, clean_dataframe, generate_cleaning_recommendations, profile_dataframe
 from history import fetch_recent_runs, init_db, log_cleaning_run
+from io_utils import get_excel_sheets_from_bytes, read_table_from_upload
 
 
 st.set_page_config(page_title="AI Data Cleaning Tool", page_icon=":material/table:", layout="wide")
@@ -27,23 +28,6 @@ def dataframe_to_excel_bytes(df: pd.DataFrame) -> bytes:
     return buffer.getvalue()
 
 
-def read_uploaded_table(uploaded_file, sheet_name: str | None = None) -> pd.DataFrame:
-    suffix = Path(uploaded_file.name).suffix.lower()
-    file_bytes = uploaded_file.getvalue()
-
-    if suffix == ".csv":
-        return pd.read_csv(io.BytesIO(file_bytes))
-    if suffix in {".xlsx", ".xls"}:
-        return pd.read_excel(io.BytesIO(file_bytes), sheet_name=sheet_name or 0)
-    raise ValueError("Unsupported file type. Please upload CSV, XLSX, or XLS.")
-
-
-def get_excel_sheets(uploaded_file) -> list[str]:
-    file_bytes = uploaded_file.getvalue()
-    excel_file = pd.ExcelFile(io.BytesIO(file_bytes))
-    return excel_file.sheet_names
-
-
 def inject_styles() -> None:
     st.markdown(
         """
@@ -55,8 +39,54 @@ def inject_styles() -> None:
             }
 
             .block-container {
-                padding-top: 2rem;
+                padding-top: 1.2rem;
                 padding-bottom: 3rem;
+            }
+
+            .top-nav {
+                align-items: center;
+                background: rgba(255,255,255,0.92);
+                border: 1px solid rgba(25, 78, 70, 0.12);
+                border-radius: 8px;
+                display: flex;
+                gap: 1rem;
+                justify-content: space-between;
+                margin-bottom: 1rem;
+                padding: 0.8rem 1rem;
+                position: sticky;
+                top: 0.6rem;
+                z-index: 20;
+                box-shadow: 0 12px 30px rgba(17, 60, 52, 0.08);
+            }
+
+            .brand {
+                color: #113c34;
+                font-size: 1.05rem;
+                font-weight: 800;
+            }
+
+            .nav-links {
+                align-items: center;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.4rem;
+                justify-content: flex-end;
+            }
+
+            .nav-links a,
+            .trial-pill {
+                border-radius: 8px;
+                color: #174a40;
+                font-size: 0.92rem;
+                font-weight: 700;
+                padding: 0.48rem 0.72rem;
+                text-decoration: none;
+            }
+
+            .trial-pill {
+                background: #dff5ea;
+                border: 1px solid #8dd8b1;
+                color: #14583c;
             }
 
             .hero {
@@ -109,6 +139,55 @@ def inject_styles() -> None:
                 font-size: 0.94rem;
             }
 
+            .section-heading {
+                color: #14583c;
+                font-size: 1.45rem;
+                font-weight: 800;
+                margin: 0 0 0.35rem;
+            }
+
+            .section-subtitle {
+                color: #48645e;
+                margin: 0 0 0.85rem;
+            }
+
+            [data-testid="stFileUploader"] label,
+            [data-testid="stSelectbox"] label,
+            [data-testid="stTextInput"] label,
+            [data-testid="stMultiSelect"] label {
+                color: #14583c;
+                font-weight: 700;
+            }
+
+            .account-panel {
+                background: rgba(255,255,255,0.9);
+                border: 1px solid rgba(25, 78, 70, 0.12);
+                border-radius: 8px;
+                padding: 1rem;
+            }
+
+            .plan-card {
+                background: rgba(255,255,255,0.9);
+                border: 1px solid rgba(25, 78, 70, 0.12);
+                border-radius: 8px;
+                min-height: 190px;
+                padding: 1rem;
+            }
+
+            .plan-card strong {
+                color: #113c34;
+                display: block;
+                font-size: 1.08rem;
+                margin-bottom: 0.25rem;
+            }
+
+            .plan-card .price {
+                color: #14583c;
+                font-size: 1.7rem;
+                font-weight: 900;
+                margin: 0.35rem 0;
+            }
+
             .recommendation {
                 border-left: 4px solid #1f7868;
                 background: rgba(255,255,255,0.9);
@@ -148,6 +227,12 @@ def inject_styles() -> None:
                     grid-template-columns: 1fr;
                 }
 
+                .top-nav {
+                    align-items: flex-start;
+                    flex-direction: column;
+                    position: static;
+                }
+
                 .hero {
                     padding: 1.4rem;
                 }
@@ -162,6 +247,16 @@ inject_styles()
 
 st.markdown(
     """
+    <nav class="top-nav">
+        <div class="brand">CleanWise Data Studio</div>
+        <div class="nav-links">
+            <a href="#cleaner">Cleaner</a>
+            <a href="#account">Account</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#billing">Billing</a>
+            <span class="trial-pill">Free trial first</span>
+        </div>
+    </nav>
     <section class="hero">
         <h1>Clean messy data before it slows you down.</h1>
         <p>Upload a CSV or Excel file, get smart cleaning recommendations, adjust each column, preview the result, and download a cleaner dataset in minutes.</p>
@@ -175,14 +270,109 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+cleaner_tab, account_tab, pricing_tab, billing_tab = st.tabs(["Cleaner", "Account", "Pricing", "Billing"])
+
+with account_tab:
+    st.markdown('<div id="account" class="section-heading">Create Your Account</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<p class="section-subtitle">Save your cleaning history, trial status, and billing preferences.</p>',
+        unsafe_allow_html=True,
+    )
+    account_cols = st.columns([1, 1], gap="large")
+    with account_cols[0]:
+        with st.form("account_form"):
+            full_name = st.text_input("Full name")
+            email = st.text_input("Email address")
+            company = st.text_input("Company or project name")
+            submitted = st.form_submit_button("Save Account")
+            if submitted:
+                st.session_state["account"] = {
+                    "full_name": full_name,
+                    "email": email,
+                    "company": company,
+                    "plan": st.session_state.get("selected_plan", "Free Trial"),
+                }
+                st.success("Account details saved for this session.")
+    with account_cols[1]:
+        account = st.session_state.get("account")
+        if account:
+            st.markdown(
+                f"""
+                <div class="account-panel">
+                    <strong>{account.get("full_name") or "Account"}</strong><br>
+                    {account.get("email") or "No email added"}<br>
+                    {account.get("company") or "No company added"}<br><br>
+                    Current plan: <strong>{account.get("plan", "Free Trial")}</strong>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            st.info("Add account details to personalize the app experience.")
+
+with pricing_tab:
+    st.markdown('<div id="pricing" class="section-heading">Plans Built Around Your Data Workflow</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<p class="section-subtitle">Start with a free trial, then upgrade when you need more history, exports, or team features.</p>',
+        unsafe_allow_html=True,
+    )
+    plan_cols = st.columns(3)
+    plans = [
+        ("Free Trial", "GBP 0", "Try cleaning, recommendations, and downloads on sample workflows."),
+        ("Pro", "GBP 12/mo", "More saved history, larger files, Excel exports, and priority recommendations."),
+        ("Team", "GBP 39/mo", "Shared cleaning history, team seats, billing controls, and audit-friendly logs."),
+    ]
+    for column, (name, price, detail) in zip(plan_cols, plans, strict=False):
+        with column:
+            st.markdown(
+                f"""
+                <div class="plan-card">
+                    <strong>{name}</strong>
+                    <div class="price">{price}</div>
+                    <p>{detail}</p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            if st.button(f"Choose {name}", key=f"plan_{name}", use_container_width=True):
+                st.session_state["selected_plan"] = name
+                if "account" in st.session_state:
+                    st.session_state["account"]["plan"] = name
+                st.success(f"{name} selected.")
+
+with billing_tab:
+    st.markdown('<div id="billing" class="section-heading">Payment Methods</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<p class="section-subtitle">Payments should be connected to a secure provider such as Stripe before production. This form stores no card details.</p>',
+        unsafe_allow_html=True,
+    )
+    billing_cols = st.columns([1, 1], gap="large")
+    with billing_cols[0]:
+        selected_plan = st.selectbox(
+            "Plan",
+            ["Free Trial", "Pro", "Team"],
+            index=["Free Trial", "Pro", "Team"].index(st.session_state.get("selected_plan", "Free Trial")),
+        )
+        provider = st.selectbox("Preferred payment provider", ["Stripe", "PayPal", "Bank transfer"])
+        billing_email = st.text_input("Billing email")
+        if st.button("Save Billing Preference"):
+            st.session_state["selected_plan"] = selected_plan
+            st.session_state["billing"] = {"provider": provider, "billing_email": billing_email}
+            st.success("Billing preference saved for this session.")
+    with billing_cols[1]:
+        st.info("Production payment processing should use hosted checkout pages and webhooks so sensitive card data never touches this app.")
+
+with cleaner_tab:
+    st.markdown('<div id="cleaner" class="section-heading">Upload Your Dataset</div>', unsafe_allow_html=True)
+    st.markdown('<p class="section-subtitle">CSV or Excel file</p>', unsafe_allow_html=True)
+
 left_panel, right_panel = st.columns([1.05, 0.95], gap="large")
 
 with left_panel:
-    st.subheader("Upload Your Dataset")
     uploaded_file = st.file_uploader("CSV or Excel file", type=["csv", "xlsx", "xls"])
 
 with right_panel:
-    st.subheader("Recent Cleaning History")
+    st.markdown('<div class="section-heading">Recent Cleaning History</div>', unsafe_allow_html=True)
     history_runs = fetch_recent_runs(limit=5)
     if history_runs:
         history_df = pd.DataFrame(
@@ -206,16 +396,20 @@ if uploaded_file is None:
 sheet_name = None
 if Path(uploaded_file.name).suffix.lower() in {".xlsx", ".xls"}:
     try:
-        sheet_names = get_excel_sheets(uploaded_file)
+        sheet_names = get_excel_sheets_from_bytes(uploaded_file.getvalue())
     except Exception as exc:
         st.error(f"Could not inspect Excel workbook: {exc}")
         st.stop()
     sheet_name = st.selectbox("Choose Excel sheet", sheet_names)
 
 try:
-    original_df = read_uploaded_table(uploaded_file, sheet_name)
+    read_result = read_table_from_upload(uploaded_file.name, uploaded_file.getvalue(), sheet_name)
+    original_df = read_result.dataframe
+    for note in read_result.notes:
+        st.warning(note)
 except Exception as exc:
     st.error(f"Could not read file: {exc}")
+    st.info("Try opening the CSV in Excel or Google Sheets and exporting it again as UTF-8 CSV if the file is heavily malformed.")
     st.stop()
 
 if original_df.empty:
@@ -229,7 +423,7 @@ st.divider()
 control_panel, recommendation_panel = st.columns([1, 1], gap="large")
 
 with control_panel:
-    st.subheader("Cleaning Controls")
+    st.markdown('<div class="section-heading">Cleaning Controls</div>', unsafe_allow_html=True)
     all_columns = list(original_df.columns)
     selected_columns = st.multiselect(
         "Columns to clean",
@@ -266,7 +460,7 @@ with control_panel:
             st.write("No missing values detected.")
 
 with recommendation_panel:
-    st.subheader("AI Cleaning Recommendations")
+    st.markdown('<div class="section-heading">AI Cleaning Recommendations</div>', unsafe_allow_html=True)
     st.caption("Generated from a local data quality scan. No data leaves your machine.")
     for recommendation in recommendations[:8]:
         st.markdown(
@@ -309,10 +503,10 @@ tab_preview, tab_report, tab_schema, tab_download = st.tabs(
 with tab_preview:
     original_tab, cleaned_tab = st.columns(2)
     with original_tab:
-        st.subheader("Original")
+        st.markdown('<div class="section-heading">Original</div>', unsafe_allow_html=True)
         st.dataframe(original_df.head(150), use_container_width=True, height=420)
     with cleaned_tab:
-        st.subheader("Cleaned")
+        st.markdown('<div class="section-heading">Cleaned</div>', unsafe_allow_html=True)
         st.dataframe(cleaned_df.head(150), use_container_width=True, height=420)
 
 with tab_report:
@@ -334,7 +528,7 @@ with tab_schema:
     st.dataframe(schema_df, use_container_width=True, hide_index=True)
 
 with tab_download:
-    st.subheader("Export Cleaned Data")
+    st.markdown('<div class="section-heading">Export Cleaned Data</div>', unsafe_allow_html=True)
     download_cols = st.columns(3)
     download_cols[0].download_button(
         "Download CSV",

@@ -14,6 +14,7 @@ Python is the best fit for this project because:
 ## Features
 
 - Upload CSV, XLSX, or XLS files.
+- Retry malformed CSV files with safer parser fallbacks.
 - Preview original and cleaned datasets side by side.
 - Generate AI-style cleaning recommendations from a local data quality scan.
 - Normalize column names.
@@ -26,6 +27,7 @@ Python is the best fit for this project because:
 - Override missing-value handling per column.
 - Download cleaned data as CSV or Excel.
 - Save a local SQLite cleaning history.
+- Use account, pricing, and billing screens for a free-trial-first product flow.
 - Run automated tests for the cleaning and history logic.
 
 ## Database
@@ -33,6 +35,10 @@ Python is the best fit for this project because:
 The app uses SQLite through `cleaning_history.db` to store cleaning run history. This is appropriate for the current version because it is local, simple, and does not require a hosted database service.
 
 If the app later needs user accounts, shared team history, or cloud deployment at larger scale, PostgreSQL would be a better next step.
+
+## Payments
+
+The current billing screen is a product-ready placeholder. It stores no card details and is safe for local development. For production, connect a hosted checkout provider such as Stripe Checkout so sensitive payment data never touches the Streamlit app.
 
 ## Setup
 
