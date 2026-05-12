@@ -1,26 +1,38 @@
 # AI Data Cleaning Tool
 
-A starter Python app for uploading a CSV, applying smart cleaning rules, previewing the results, and downloading a cleaned CSV.
+A polished Streamlit app for uploading CSV or Excel files, getting smart cleaning recommendations, adjusting column-level cleaning rules, previewing results, and downloading clean data.
 
 ## Why Python?
 
-Python is the strongest choice for this project because:
+Python is the best fit for this project because:
 
-- `pandas` is excellent for CSV parsing, profiling, and cleaning.
-- `streamlit` makes it fast to ship an interactive upload/download UI.
-- AI features can be added later with OpenAI or another LLM provider without changing the core data pipeline.
+- `pandas` is excellent for CSV, Excel, profiling, and data-cleaning workflows.
+- `streamlit` makes it fast to build a clean, interactive web interface.
+- `sqlite3` is built into Python and is ideal for a lightweight local cleaning history.
+- AI-assisted recommendations can start with local data-quality heuristics and later be upgraded to an LLM provider.
 
 ## Features
 
-- Upload CSV files.
+- Upload CSV, XLSX, or XLS files.
+- Preview original and cleaned datasets side by side.
+- Generate AI-style cleaning recommendations from a local data quality scan.
 - Normalize column names.
 - Trim text whitespace.
 - Convert numeric-looking text columns.
 - Infer date columns.
 - Remove duplicate rows.
-- Fill or drop missing values.
-- Preview original and cleaned data side by side.
-- Download the cleaned CSV.
+- Drop selected columns.
+- Choose exactly which columns should be cleaned.
+- Override missing-value handling per column.
+- Download cleaned data as CSV or Excel.
+- Save a local SQLite cleaning history.
+- Run automated tests for the cleaning and history logic.
+
+## Database
+
+The app uses SQLite through `cleaning_history.db` to store cleaning run history. This is appropriate for the current version because it is local, simple, and does not require a hosted database service.
+
+If the app later needs user accounts, shared team history, or cloud deployment at larger scale, PostgreSQL would be a better next step.
 
 ## Setup
 
@@ -44,20 +56,21 @@ On Windows, you can also run:
 .\run_app.bat
 ```
 
+## Test
+
+```powershell
+pytest
+```
+
 ## Project Structure
 
 ```text
 .
-├── app.py              # Streamlit UI
-├── cleaner.py          # Data cleaning logic
-├── requirements.txt    # Python dependencies
-└── README.md           # Project notes
+|-- app.py              # Streamlit UI
+|-- cleaner.py          # Data cleaning and recommendation logic
+|-- history.py          # SQLite cleaning history
+|-- requirements.txt    # Python dependencies
+|-- run_app.bat         # Windows launcher
+|-- tests/              # Automated tests
+`-- README.md           # Project notes
 ```
-
-## Next Ideas
-
-- Add AI-generated cleaning recommendations.
-- Add column-level cleaning controls.
-- Add Excel upload support.
-- Add a cleaning history log.
-- Add automated tests for the cleaning functions.
