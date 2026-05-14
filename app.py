@@ -33,98 +33,246 @@ def inject_styles() -> None:
         """
         <style>
             .stApp {
-                background:
-                    radial-gradient(circle at 16% 12%, rgba(31, 120, 104, 0.12), transparent 26rem),
-                    linear-gradient(180deg, #f8fbfb 0%, #eef5f2 45%, #f8faf9 100%);
+                background: #fbfcfb;
             }
 
             .block-container {
-                padding-top: 1.2rem;
+                max-width: 1180px;
+                padding-top: 4.75rem;
                 padding-bottom: 3rem;
+            }
+
+            .announcement {
+                background: #eef6f1;
+                border: 1px solid #d7e9dd;
+                border-radius: 6px;
+                color: #31574a;
+                font-size: 0.92rem;
+                margin: 0 auto 4.5rem;
+                max-width: 980px;
+                padding: 0.62rem 1rem;
+                text-align: center;
             }
 
             .top-nav {
                 align-items: center;
-                background: rgba(255,255,255,0.92);
-                border: 1px solid rgba(25, 78, 70, 0.12);
-                border-radius: 8px;
+                background: #ffffff;
+                border: 1px solid #e4ece7;
+                border-radius: 6px;
                 display: flex;
                 gap: 1rem;
                 justify-content: space-between;
-                margin-bottom: 1rem;
-                padding: 0.8rem 1rem;
-                position: sticky;
-                top: 0.6rem;
-                z-index: 20;
-                box-shadow: 0 12px 30px rgba(17, 60, 52, 0.08);
+                margin: 0 auto 1rem;
+                max-width: 980px;
+                padding: 0.72rem 0.9rem;
+                box-shadow: 0 8px 28px rgba(18, 61, 53, 0.06);
             }
 
             .brand {
+                align-items: center;
                 color: #113c34;
+                display: flex;
                 font-size: 1.05rem;
                 font-weight: 800;
+                gap: 0.48rem;
+            }
+
+            .brand-mark {
+                align-items: center;
+                background: #1f7868;
+                border-radius: 6px;
+                color: #ffffff;
+                display: inline-flex;
+                font-size: 0.8rem;
+                height: 1.7rem;
+                justify-content: center;
+                width: 1.7rem;
             }
 
             .nav-links {
                 align-items: center;
                 display: flex;
                 flex-wrap: wrap;
-                gap: 0.4rem;
+                gap: 0.2rem;
                 justify-content: flex-end;
             }
 
             .nav-links a,
             .trial-pill {
-                border-radius: 8px;
-                color: #174a40;
+                border-radius: 6px;
+                color: #2c453e;
                 font-size: 0.92rem;
-                font-weight: 700;
-                padding: 0.48rem 0.72rem;
+                font-weight: 650;
+                padding: 0.46rem 0.66rem;
                 text-decoration: none;
             }
 
             .trial-pill {
-                background: #dff5ea;
-                border: 1px solid #8dd8b1;
+                background: #e8f6ef;
+                border: 1px solid #b9dec8;
                 color: #14583c;
+                margin-left: 0.3rem;
             }
 
             .hero {
-                padding: 2.25rem;
-                border: 1px solid rgba(25, 78, 70, 0.12);
-                border-radius: 8px;
-                background: linear-gradient(135deg, #113c34 0%, #1f7868 58%, #e6b450 100%);
-                color: #ffffff;
-                box-shadow: 0 24px 60px rgba(17, 60, 52, 0.16);
-                margin-bottom: 1rem;
+                color: #20242c;
+                margin: 0 auto 2.2rem;
+                max-width: 890px;
+                text-align: center;
             }
 
             .hero h1 {
                 margin: 0;
-                font-size: clamp(2.2rem, 5vw, 4.4rem);
-                line-height: 1.03;
+                font-size: clamp(2.6rem, 6vw, 5.4rem);
+                font-weight: 900;
+                line-height: 0.98;
                 letter-spacing: 0;
-                max-width: 900px;
             }
 
             .hero p {
-                max-width: 760px;
-                margin-top: 1rem;
-                color: rgba(255,255,255,0.86);
-                font-size: 1.05rem;
+                color: #667085;
+                font-size: 1.14rem;
+                line-height: 1.65;
+                margin: 1.45rem auto 0;
+                max-width: 720px;
+            }
+
+            .hero-actions {
+                align-items: center;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 1rem;
+                justify-content: center;
+                margin-top: 2rem;
+            }
+
+            .primary-cta,
+            .secondary-cta {
+                border-radius: 6px;
+                display: inline-flex;
+                font-size: 1rem;
+                font-weight: 750;
+                justify-content: center;
+                min-width: 170px;
+                padding: 0.9rem 1.25rem;
+                text-decoration: none !important;
+            }
+
+            .primary-cta {
+                background: #1f7868;
+                box-shadow: 0 16px 32px rgba(31, 120, 104, 0.22);
+                color: #ffffff !important;
+            }
+
+            .secondary-cta {
+                border-bottom: 2px solid #c5d2cb;
+                color: #1f2a37 !important;
+                min-width: auto;
+                padding-left: 0;
+                padding-right: 0;
+            }
+
+            .product-preview {
+                background: #ffffff;
+                border: 1px solid #dce8e1;
+                border-radius: 8px;
+                box-shadow: 0 28px 72px rgba(17, 60, 52, 0.13);
+                margin: 0 auto 2rem;
+                max-width: 900px;
+                overflow: hidden;
+            }
+
+            .preview-toolbar {
+                align-items: center;
+                background: #f6faf8;
+                border-bottom: 1px solid #e1ebe5;
+                display: flex;
+                justify-content: space-between;
+                padding: 0.75rem 0.9rem;
+            }
+
+            .preview-dots {
+                display: flex;
+                gap: 0.32rem;
+            }
+
+            .preview-dots span {
+                background: #b9c7c0;
+                border-radius: 999px;
+                display: block;
+                height: 0.62rem;
+                width: 0.62rem;
+            }
+
+            .preview-label {
+                color: #48645e;
+                font-size: 0.86rem;
+                font-weight: 750;
+            }
+
+            .preview-body {
+                display: grid;
+                gap: 1rem;
+                grid-template-columns: 1.1fr 0.9fr;
+                padding: 1rem;
+            }
+
+            .preview-table {
+                border: 1px solid #e2ebe6;
+                border-radius: 6px;
+                overflow: hidden;
+            }
+
+            .preview-row {
+                display: grid;
+                grid-template-columns: 1.2fr 0.8fr 0.8fr;
+            }
+
+            .preview-row span {
+                border-bottom: 1px solid #e7efeb;
+                color: #435b54;
+                font-size: 0.88rem;
+                padding: 0.76rem;
+            }
+
+            .preview-row.header span {
+                background: #113c34;
+                color: #ffffff;
+                font-weight: 750;
+            }
+
+            .preview-insights {
+                display: grid;
+                gap: 0.75rem;
+            }
+
+            .insight {
+                background: #f8fbfa;
+                border: 1px solid #e2ebe6;
+                border-left: 4px solid #1f7868;
+                border-radius: 6px;
+                color: #31574a;
+                padding: 0.9rem;
+            }
+
+            .insight strong {
+                color: #113c34;
+                display: block;
+                margin-bottom: 0.25rem;
             }
 
             .feature-row {
                 display: grid;
                 grid-template-columns: repeat(3, minmax(0, 1fr));
                 gap: 0.8rem;
-                margin: 1rem 0 1.2rem;
+                margin: 1rem auto 1.8rem;
+                max-width: 900px;
             }
 
             .feature {
-                border: 1px solid rgba(25, 78, 70, 0.11);
-                border-radius: 8px;
-                background: rgba(255,255,255,0.82);
+                border: 1px solid #e2ebe6;
+                border-radius: 6px;
+                background: #ffffff;
                 padding: 1rem;
             }
 
@@ -151,12 +299,35 @@ def inject_styles() -> None:
                 margin: 0 0 0.85rem;
             }
 
+            .app-panel {
+                background: #ffffff;
+                border: 1px solid #dce8e1;
+                border-radius: 8px;
+                box-shadow: 0 20px 54px rgba(17, 60, 52, 0.08);
+                margin: 0 auto 1.2rem;
+                max-width: 980px;
+                padding: 1.2rem;
+            }
+
+            div[data-testid="stHorizontalBlock"] {
+                gap: 1rem;
+            }
+
             [data-testid="stFileUploader"] label,
             [data-testid="stSelectbox"] label,
             [data-testid="stTextInput"] label,
             [data-testid="stMultiSelect"] label {
                 color: #14583c;
                 font-weight: 700;
+            }
+
+            button[data-baseweb="tab"] p {
+                color: #31574a;
+                font-weight: 700;
+            }
+
+            button[data-baseweb="tab"][aria-selected="true"] p {
+                color: #14583c;
             }
 
             .account-panel {
@@ -227,14 +398,22 @@ def inject_styles() -> None:
                     grid-template-columns: 1fr;
                 }
 
+                .preview-body {
+                    grid-template-columns: 1fr;
+                }
+
                 .top-nav {
                     align-items: flex-start;
                     flex-direction: column;
-                    position: static;
+                    margin-bottom: 2.4rem;
                 }
 
                 .hero {
-                    padding: 1.4rem;
+                    margin-bottom: 1.5rem;
+                }
+
+                .hero h1 {
+                    font-size: 2.5rem;
                 }
             }
         </style>
@@ -248,7 +427,7 @@ inject_styles()
 st.markdown(
     """
     <nav class="top-nav">
-        <div class="brand">CleanWise Data Studio</div>
+        <div class="brand"><span class="brand-mark">CW</span> CleanWise</div>
         <div class="nav-links">
             <a href="#cleaner">Cleaner</a>
             <a href="#account">Account</a>
@@ -257,9 +436,33 @@ st.markdown(
             <span class="trial-pill">Free trial first</span>
         </div>
     </nav>
+    <div class="announcement">Free trial available now. Upload, clean, preview, and export your first datasets without setup.</div>
     <section class="hero">
-        <h1>Clean messy data before it slows you down.</h1>
-        <p>Upload a CSV or Excel file, get smart cleaning recommendations, adjust each column, preview the result, and download a cleaner dataset in minutes.</p>
+        <h1>A cleaner way to prepare and trust your data</h1>
+        <p>Turn messy CSV and Excel files into cleaner, analysis-ready datasets with guided recommendations, column controls, history, and one-click exports.</p>
+        <div class="hero-actions">
+            <a class="primary-cta" href="#cleaner">Get started</a>
+            <a class="secondary-cta" href="#pricing">View free trial</a>
+        </div>
+    </section>
+    <section class="product-preview" aria-label="CleanWise product preview">
+        <div class="preview-toolbar">
+            <div class="preview-dots"><span></span><span></span><span></span></div>
+            <div class="preview-label">Dataset quality preview</div>
+        </div>
+        <div class="preview-body">
+            <div class="preview-table">
+                <div class="preview-row header"><span>customer_name</span><span>amount</span><span>status</span></div>
+                <div class="preview-row"><span>Ada Lovelace</span><span>1250</span><span>Clean</span></div>
+                <div class="preview-row"><span>Grace Hopper</span><span>980</span><span>Trimmed</span></div>
+                <div class="preview-row"><span>Katherine Johnson</span><span>1140</span><span>Filled</span></div>
+            </div>
+            <div class="preview-insights">
+                <div class="insight"><strong>Smart recommendation</strong>3 columns need type conversion before export.</div>
+                <div class="insight"><strong>Column controls</strong>Drop, preserve, or clean individual columns.</div>
+                <div class="insight"><strong>Ready to download</strong>Export cleaned results as CSV or Excel.</div>
+            </div>
+        </div>
     </section>
     <div class="feature-row">
         <div class="feature"><strong>Guided recommendations</strong><span>Spot duplicates, missing values, type issues, and whitespace before cleaning.</span></div>
@@ -366,29 +569,30 @@ with cleaner_tab:
     st.markdown('<div id="cleaner" class="section-heading">Upload Your Dataset</div>', unsafe_allow_html=True)
     st.markdown('<p class="section-subtitle">CSV or Excel file</p>', unsafe_allow_html=True)
 
-left_panel, right_panel = st.columns([1.05, 0.95], gap="large")
+with st.container(border=True):
+    left_panel, right_panel = st.columns([1.05, 0.95], gap="large")
 
-with left_panel:
-    uploaded_file = st.file_uploader("CSV or Excel file", type=["csv", "xlsx", "xls"])
+    with left_panel:
+        uploaded_file = st.file_uploader("CSV or Excel file", type=["csv", "xlsx", "xls"])
 
-with right_panel:
-    st.markdown('<div class="section-heading">Recent Cleaning History</div>', unsafe_allow_html=True)
-    history_runs = fetch_recent_runs(limit=5)
-    if history_runs:
-        history_df = pd.DataFrame(
-            [
-                {
-                    "file": run["filename"],
-                    "rows": f'{run["original_rows"]:,} -> {run["cleaned_rows"]:,}',
-                    "missing fixed": run["missing_cells_fixed"],
-                    "created": str(run["created_at"]).replace("T", " "),
-                }
-                for run in history_runs
-            ]
-        )
-        st.dataframe(history_df, use_container_width=True, hide_index=True)
-    else:
-        st.info("Your cleaning history will appear here after you save a run.")
+    with right_panel:
+        st.markdown('<div class="section-heading">Recent Cleaning History</div>', unsafe_allow_html=True)
+        history_runs = fetch_recent_runs(limit=5)
+        if history_runs:
+            history_df = pd.DataFrame(
+                [
+                    {
+                        "file": run["filename"],
+                        "rows": f'{run["original_rows"]:,} -> {run["cleaned_rows"]:,}',
+                        "missing fixed": run["missing_cells_fixed"],
+                        "created": str(run["created_at"]).replace("T", " "),
+                    }
+                    for run in history_runs
+                ]
+            )
+            st.dataframe(history_df, use_container_width=True, hide_index=True)
+        else:
+            st.info("Your cleaning history will appear here after you save a run.")
 
 if uploaded_file is None:
     st.stop()
