@@ -27,12 +27,13 @@ Python is the best fit for this project because:
 - Override missing-value handling per column.
 - Download cleaned data as CSV or Excel.
 - Save a local SQLite cleaning history.
-- Use account, pricing, and billing screens for a free-trial-first product flow.
+- Create and sign in to local accounts with hashed passwords.
+- Use pricing and billing screens for a free-trial-first product flow.
 - Run automated tests for the cleaning and history logic.
 
 ## Database
 
-The app uses SQLite through `cleaning_history.db` to store cleaning run history. This is appropriate for the current version because it is local, simple, and does not require a hosted database service.
+The app uses SQLite through `cleaning_history.db` to store cleaning run history and local account records. This is appropriate for the current version because it is local, simple, and does not require a hosted database service.
 
 If the app later needs user accounts, shared team history, or cloud deployment at larger scale, PostgreSQL would be a better next step.
 

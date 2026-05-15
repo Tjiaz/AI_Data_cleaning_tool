@@ -6,6 +6,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+from accounts import authenticate_account, create_account, init_accounts, update_account_plan
 from cleaner import CleanOptions, clean_dataframe, generate_cleaning_recommendations, profile_dataframe
 from history import fetch_recent_runs, init_db, log_cleaning_run
 from io_utils import get_excel_sheets_from_bytes, read_table_from_upload
@@ -13,6 +14,7 @@ from io_utils import get_excel_sheets_from_bytes, read_table_from_upload
 
 st.set_page_config(page_title="AI Data Cleaning Tool", page_icon=":material/table:", layout="wide")
 init_db()
+init_accounts()
 
 
 def dataframe_to_csv_bytes(df: pd.DataFrame) -> bytes:
@@ -387,10 +389,27 @@ def inject_styles() -> None:
             }
 
             [data-testid="stMetric"] {
-                background: rgba(255,255,255,0.88);
-                border: 1px solid rgba(25, 78, 70, 0.11);
+                background: #f1faf5;
+                border: 1px solid #b9dec8;
                 border-radius: 8px;
                 padding: 1rem;
+            }
+
+            [data-testid="stMetricLabel"],
+            [data-testid="stMetricLabel"] p {
+                color: #14583c !important;
+                font-weight: 800 !important;
+            }
+
+            [data-testid="stMetricValue"],
+            [data-testid="stMetricValue"] div {
+                color: #0f3f2f !important;
+                font-weight: 900 !important;
+            }
+
+            [data-testid="stMetricDelta"],
+            [data-testid="stMetricDelta"] div {
+                color: #1f7868 !important;
             }
 
             @media (max-width: 800px) {
@@ -478,40 +497,69 @@ cleaner_tab, account_tab, pricing_tab, billing_tab = st.tabs(["Cleaner", "Accoun
 with account_tab:
     st.markdown('<div id="account" class="section-heading">Create Your Account</div>', unsafe_allow_html=True)
     st.markdown(
-        '<p class="section-subtitle">Save your cleaning history, trial status, and billing preferences.</p>',
+        '<p class="section-subtitle">Create an account to save your trial plan, cleaning history, and billing preferences.</p>',
         unsafe_allow_html=True,
     )
     account_cols = st.columns([1, 1], gap="large")
     with account_cols[0]:
+        st.markdown("**New account**")
         with st.form("account_form"):
             full_name = st.text_input("Full name")
             email = st.text_input("Email address")
             company = st.text_input("Company or project name")
-            submitted = st.form_submit_button("Save Account")
+            password = st.text_input("Password", type="password")
+            submitted = st.form_submit_button("Create Account")
             if submitted:
-                st.session_state["account"] = {
-                    "full_name": full_name,
-                    "email": email,
-                    "company": company,
-                    "plan": st.session_state.get("selected_plan", "Free Trial"),
-                }
-                st.success("Account details saved for this session.")
+                try:
+                    account = create_account(
+                        full_name=full_name,
+                        email=email,
+                        company=company,
+                        password=password,
+                        plan=st.session_state.get("selected_plan", "Free Trial"),
+                    )
+                except ValueError as exc:
+                    st.error(str(exc))
+                else:
+                    st.session_state["account"] = account
+                    st.success("Account created. You are signed in for this session.")
+
+        st.markdown("**Already have an account?**")
+        with st.form("login_form"):
+            login_email = st.text_input("Login email")
+            login_password = st.text_input("Login password", type="password")
+            login_submitted = st.form_submit_button("Sign In")
+            if login_submitted:
+                account = authenticate_account(login_email, login_password)
+                if account is None:
+                    st.error("Email or password is incorrect.")
+                else:
+                    st.session_state["account"] = account
+                    st.session_state["selected_plan"] = account.plan
+                    st.success("Signed in successfully.")
     with account_cols[1]:
         account = st.session_state.get("account")
         if account:
+            full_name = getattr(account, "full_name", "")
+            email = getattr(account, "email", "")
+            company = getattr(account, "company", "")
+            plan = getattr(account, "plan", "Free Trial")
             st.markdown(
                 f"""
                 <div class="account-panel">
-                    <strong>{account.get("full_name") or "Account"}</strong><br>
-                    {account.get("email") or "No email added"}<br>
-                    {account.get("company") or "No company added"}<br><br>
-                    Current plan: <strong>{account.get("plan", "Free Trial")}</strong>
+                    <strong>{full_name or "Account"}</strong><br>
+                    {email or "No email added"}<br>
+                    {company or "No company added"}<br><br>
+                    Current plan: <strong>{plan}</strong>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
+            if st.button("Sign Out", use_container_width=True):
+                st.session_state.pop("account", None)
+                st.success("Signed out.")
         else:
-            st.info("Add account details to personalize the app experience.")
+            st.info("Create an account or sign in to personalize the app experience.")
 
 with pricing_tab:
     st.markdown('<div id="pricing" class="section-heading">Plans Built Around Your Data Workflow</div>', unsafe_allow_html=True)
@@ -540,7 +588,9 @@ with pricing_tab:
             if st.button(f"Choose {name}", key=f"plan_{name}", use_container_width=True):
                 st.session_state["selected_plan"] = name
                 if "account" in st.session_state:
-                    st.session_state["account"]["plan"] = name
+                    updated_account = update_account_plan(st.session_state["account"].email, name)
+                    if updated_account is not None:
+                        st.session_state["account"] = updated_account
                 st.success(f"{name} selected.")
 
 with billing_tab:
@@ -561,6 +611,10 @@ with billing_tab:
         if st.button("Save Billing Preference"):
             st.session_state["selected_plan"] = selected_plan
             st.session_state["billing"] = {"provider": provider, "billing_email": billing_email}
+            if "account" in st.session_state:
+                updated_account = update_account_plan(st.session_state["account"].email, selected_plan)
+                if updated_account is not None:
+                    st.session_state["account"] = updated_account
             st.success("Billing preference saved for this session.")
     with billing_cols[1]:
         st.info("Production payment processing should use hosted checkout pages and webhooks so sensitive card data never touches this app.")
