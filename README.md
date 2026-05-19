@@ -28,6 +28,7 @@ Python is the best fit for this project because:
 - Download cleaned data as CSV or Excel.
 - Save a local SQLite cleaning history.
 - Create and sign in to local accounts with hashed passwords.
+- Limit Free Trial cleaner access to 2 days from account creation.
 - Use pricing and billing screens for a free-trial-first product flow.
 - Run automated tests for the cleaning and history logic.
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import hashlib
 import hmac
 from pathlib import Path
@@ -19,6 +19,11 @@ class Account:
     company: str
     plan: str
     created_at: str
+    trial_started_at: str
+
+
+TRIAL_DAYS = 2
+PAID_PLANS = {"Pro", "Team"}
 
 
 def init_accounts(db_path: Path = DB_PATH) -> None:
@@ -28,6 +33,7 @@ def init_accounts(db_path: Path = DB_PATH) -> None:
             CREATE TABLE IF NOT EXISTS accounts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 created_at TEXT NOT NULL,
+                trial_started_at TEXT NOT NULL,
                 full_name TEXT NOT NULL,
                 email TEXT NOT NULL UNIQUE,
                 company TEXT NOT NULL,
@@ -35,6 +41,23 @@ def init_accounts(db_path: Path = DB_PATH) -> None:
                 password_salt TEXT NOT NULL,
                 password_hash TEXT NOT NULL
             )
+            """
+        )
+        ensure_account_columns(connection)
+
+
+def ensure_account_columns(connection: sqlite3.Connection) -> None:
+    columns = {
+        str(row["name"])
+        for row in connection.execute("PRAGMA table_info(accounts)").fetchall()
+    }
+    if "trial_started_at" not in columns:
+        connection.execute("ALTER TABLE accounts ADD COLUMN trial_started_at TEXT")
+        connection.execute(
+            """
+            UPDATE accounts
+            SET trial_started_at = created_at
+            WHERE trial_started_at IS NULL OR trial_started_at = ''
             """
         )
 
@@ -52,6 +75,7 @@ def create_account(
     normalized_email = email.strip().lower()
     salt = secrets.token_hex(16)
     password_hash = hash_password(password, salt)
+    created_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
     try:
         with get_connection(db_path) as connection:
@@ -59,6 +83,7 @@ def create_account(
                 """
                 INSERT INTO accounts (
                     created_at,
+                    trial_started_at,
                     full_name,
                     email,
                     company,
@@ -66,10 +91,11 @@ def create_account(
                     password_salt,
                     password_hash
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                    created_at,
+                    created_at,
                     full_name.strip(),
                     normalized_email,
                     company.strip(),
@@ -102,6 +128,7 @@ def authenticate_account(email: str, password: str, db_path: Path = DB_PATH) -> 
                 email,
                 company,
                 plan,
+                trial_started_at,
                 password_salt,
                 password_hash
             FROM accounts
@@ -143,7 +170,7 @@ def get_account_by_email(email: str, db_path: Path = DB_PATH) -> Account | None:
     with get_connection(db_path) as connection:
         row = connection.execute(
             """
-            SELECT id, created_at, full_name, email, company, plan
+            SELECT id, created_at, trial_started_at, full_name, email, company, plan
             FROM accounts
             WHERE email = ?
             """,
@@ -161,7 +188,38 @@ def account_from_row(row: sqlite3.Row) -> Account:
         company=str(row["company"]),
         plan=str(row["plan"]),
         created_at=str(row["created_at"]),
+        trial_started_at=str(row["trial_started_at"]),
     )
+
+
+def trial_expires_at(account: Account) -> datetime:
+    return parse_account_datetime(account.trial_started_at) + timedelta(days=TRIAL_DAYS)
+
+
+def trial_days_remaining(account: Account, now: datetime | None = None) -> int:
+    now = now or datetime.now(timezone.utc)
+    remaining = trial_expires_at(account) - now
+    return max(0, remaining.days + (1 if remaining.seconds or remaining.microseconds else 0))
+
+
+def is_trial_active(account: Account, now: datetime | None = None) -> bool:
+    if account.plan in PAID_PLANS:
+        return True
+    now = now or datetime.now(timezone.utc)
+    return now < trial_expires_at(account)
+
+
+def can_use_cleaner(account: Account | None, now: datetime | None = None) -> bool:
+    if account is None:
+        return False
+    return account.plan in PAID_PLANS or is_trial_active(account, now)
+
+
+def parse_account_datetime(value: str) -> datetime:
+    parsed = datetime.fromisoformat(value)
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed
 
 
 def hash_password(password: str, salt: str) -> str:

@@ -6,7 +6,16 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from accounts import authenticate_account, create_account, init_accounts, update_account_plan
+from accounts import (
+    TRIAL_DAYS,
+    authenticate_account,
+    can_use_cleaner,
+    create_account,
+    init_accounts,
+    trial_days_remaining,
+    trial_expires_at,
+    update_account_plan,
+)
 from cleaner import CleanOptions, clean_dataframe, generate_cleaning_recommendations, profile_dataframe
 from history import fetch_recent_runs, init_db, log_cleaning_run
 from io_utils import get_excel_sheets_from_bytes, read_table_from_upload
@@ -344,6 +353,22 @@ def inject_styles() -> None:
                 padding: 1rem;
             }
 
+            .trial-status {
+                background: #eef8f3;
+                border: 1px solid #b9dec8;
+                border-radius: 8px;
+                color: #14583c;
+                font-weight: 750;
+                margin: 0.8rem 0;
+                padding: 0.85rem 1rem;
+            }
+
+            .trial-status.expired {
+                background: #fff6ed;
+                border-color: #efbf88;
+                color: #804b12;
+            }
+
             .plan-card {
                 background: rgba(255,255,255,0.9);
                 border: 1px solid rgba(25, 78, 70, 0.12);
@@ -562,6 +587,7 @@ if active_section == "Account":
         '<p class="section-subtitle">Create an account to save your trial plan, cleaning history, and billing preferences.</p>',
         unsafe_allow_html=True,
     )
+    st.info(f"Free Trial accounts can use the cleaner for {TRIAL_DAYS} days from account creation.")
     account_cols = st.columns([1, 1], gap="large")
     with account_cols[0]:
         st.markdown("**New account**")
@@ -584,7 +610,7 @@ if active_section == "Account":
                     st.error(str(exc))
                 else:
                     st.session_state["account"] = account
-                    st.success("Account created. You are signed in for this session.")
+                    st.success(f"Account created. Your {TRIAL_DAYS}-day free trial starts now.")
 
         st.markdown("**Already have an account?**")
         with st.form("login_form", clear_on_submit=True):
@@ -606,6 +632,16 @@ if active_section == "Account":
             email = getattr(account, "email", "")
             company = getattr(account, "company", "")
             plan = getattr(account, "plan", "Free Trial")
+            days_remaining = trial_days_remaining(account)
+            expires_at = trial_expires_at(account).strftime("%d %b %Y")
+            status_class = "trial-status" if can_use_cleaner(account) else "trial-status expired"
+            status_text = (
+                f"Free trial active: {days_remaining} day(s) remaining. Expires {expires_at}."
+                if can_use_cleaner(account)
+                else f"Free trial expired on {expires_at}. Choose Pro or Team to keep cleaning data."
+            )
+            if plan != "Free Trial":
+                status_text = f"{plan} plan active. Cleaner access is enabled."
             st.markdown(
                 f"""
                 <div class="account-panel">
@@ -614,6 +650,7 @@ if active_section == "Account":
                     {company or "No company added"}<br><br>
                     Current plan: <strong>{plan}</strong>
                 </div>
+                <div class="{status_class}">{status_text}</div>
                 """,
                 unsafe_allow_html=True,
             )
@@ -686,6 +723,31 @@ if active_section == "Billing":
 
 st.markdown('<div id="cleaner" class="section-heading">Upload Your Dataset</div>', unsafe_allow_html=True)
 st.markdown('<p class="section-subtitle">CSV or Excel file</p>', unsafe_allow_html=True)
+
+current_account = st.session_state.get("account")
+if current_account is None:
+    st.warning(f"Create an account to start your {TRIAL_DAYS}-day free trial before using the cleaner.")
+    st.markdown(
+        '<a class="primary-cta" href="?section=Account">Create Account</a>',
+        unsafe_allow_html=True,
+    )
+    st.stop()
+
+if not can_use_cleaner(current_account):
+    expires_at = trial_expires_at(current_account).strftime("%d %b %Y")
+    st.error(f"Your {TRIAL_DAYS}-day free trial expired on {expires_at}. Upgrade to Pro or Team to keep cleaning data.")
+    st.markdown(
+        '<a class="primary-cta" href="?section=Pricing">View Plans</a>',
+        unsafe_allow_html=True,
+    )
+    st.stop()
+
+if current_account.plan == "Free Trial":
+    days_remaining = trial_days_remaining(current_account)
+    st.markdown(
+        f'<div class="trial-status">Free trial active: {days_remaining} day(s) remaining.</div>',
+        unsafe_allow_html=True,
+    )
 
 with st.container(border=True):
     left_panel, right_panel = st.columns([1.05, 0.95], gap="large")
