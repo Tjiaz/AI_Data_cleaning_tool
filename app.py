@@ -109,6 +109,11 @@ def inject_styles() -> None:
                 text-decoration: none;
             }
 
+            .nav-links a:hover {
+                background: #e8f6ef;
+                color: #14583c;
+            }
+
             .trial-pill {
                 background: #e8f6ef;
                 border: 1px solid #b9dec8;
@@ -361,6 +366,47 @@ def inject_styles() -> None:
                 margin: 0.35rem 0;
             }
 
+            .plan-card p {
+                color: #31574a !important;
+                font-weight: 600;
+                line-height: 1.55;
+            }
+
+            [data-testid="stRadio"] label p {
+                color: #31574a !important;
+                font-weight: 750 !important;
+            }
+
+            div[data-testid="stButton"] button,
+            div[data-testid="stFormSubmitButton"] button,
+            div[data-testid="stDownloadButton"] button {
+                background: #ffffff;
+                border: 1px solid #9fcfb3;
+                color: #14583c !important;
+                font-weight: 800;
+            }
+
+            div[data-testid="stButton"] button p,
+            div[data-testid="stFormSubmitButton"] button p,
+            div[data-testid="stDownloadButton"] button p {
+                color: #14583c !important;
+                font-weight: 800;
+            }
+
+            div[data-testid="stButton"] button:hover,
+            div[data-testid="stFormSubmitButton"] button:hover,
+            div[data-testid="stDownloadButton"] button:hover {
+                background: #14583c;
+                border-color: #14583c;
+                color: #ffffff !important;
+            }
+
+            div[data-testid="stButton"] button:hover p,
+            div[data-testid="stFormSubmitButton"] button:hover p,
+            div[data-testid="stDownloadButton"] button:hover p {
+                color: #ffffff !important;
+            }
+
             .recommendation {
                 border-left: 4px solid #1f7868;
                 background: rgba(255,255,255,0.9);
@@ -448,10 +494,10 @@ st.markdown(
     <nav class="top-nav">
         <div class="brand"><span class="brand-mark">CW</span> CleanWise</div>
         <div class="nav-links">
-            <a href="#cleaner">Cleaner</a>
-            <a href="#account">Account</a>
-            <a href="#pricing">Pricing</a>
-            <a href="#billing">Billing</a>
+            <a href="?section=Cleaner">Cleaner</a>
+            <a href="?section=Account">Account</a>
+            <a href="?section=Pricing">Pricing</a>
+            <a href="?section=Billing">Billing</a>
             <span class="trial-pill">Free trial first</span>
         </div>
     </nav>
@@ -460,8 +506,8 @@ st.markdown(
         <h1>A cleaner way to prepare and trust your data</h1>
         <p>Turn messy CSV and Excel files into cleaner, analysis-ready datasets with guided recommendations, column controls, history, and one-click exports.</p>
         <div class="hero-actions">
-            <a class="primary-cta" href="#cleaner">Get started</a>
-            <a class="secondary-cta" href="#pricing">View free trial</a>
+            <a class="primary-cta" href="?section=Cleaner">Get started</a>
+            <a class="secondary-cta" href="?section=Pricing">View free trial</a>
         </div>
     </section>
     <section class="product-preview" aria-label="CleanWise product preview">
@@ -492,9 +538,25 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-cleaner_tab, account_tab, pricing_tab, billing_tab = st.tabs(["Cleaner", "Account", "Pricing", "Billing"])
+SECTIONS = ["Cleaner", "Account", "Pricing", "Billing"]
+requested_section = st.query_params.get("section", "Cleaner")
+if requested_section not in SECTIONS:
+    requested_section = "Cleaner"
 
-with account_tab:
+active_section = st.radio(
+    "Site section",
+    SECTIONS,
+    index=SECTIONS.index(requested_section),
+    horizontal=True,
+    label_visibility="collapsed",
+    key=f"section_picker_{requested_section}",
+)
+
+if active_section != requested_section:
+    st.query_params["section"] = active_section
+    st.rerun()
+
+if active_section == "Account":
     st.markdown('<div id="account" class="section-heading">Create Your Account</div>', unsafe_allow_html=True)
     st.markdown(
         '<p class="section-subtitle">Create an account to save your trial plan, cleaning history, and billing preferences.</p>',
@@ -560,8 +622,9 @@ with account_tab:
                 st.success("Signed out.")
         else:
             st.info("Create an account or sign in to personalize the app experience.")
+    st.stop()
 
-with pricing_tab:
+if active_section == "Pricing":
     st.markdown('<div id="pricing" class="section-heading">Plans Built Around Your Data Workflow</div>', unsafe_allow_html=True)
     st.markdown(
         '<p class="section-subtitle">Start with a free trial, then upgrade when you need more history, exports, or team features.</p>',
@@ -592,8 +655,9 @@ with pricing_tab:
                     if updated_account is not None:
                         st.session_state["account"] = updated_account
                 st.success(f"{name} selected.")
+    st.stop()
 
-with billing_tab:
+if active_section == "Billing":
     st.markdown('<div id="billing" class="section-heading">Payment Methods</div>', unsafe_allow_html=True)
     st.markdown(
         '<p class="section-subtitle">Payments should be connected to a secure provider such as Stripe before production. This form stores no card details.</p>',
@@ -618,10 +682,10 @@ with billing_tab:
             st.success("Billing preference saved for this session.")
     with billing_cols[1]:
         st.info("Production payment processing should use hosted checkout pages and webhooks so sensitive card data never touches this app.")
+    st.stop()
 
-with cleaner_tab:
-    st.markdown('<div id="cleaner" class="section-heading">Upload Your Dataset</div>', unsafe_allow_html=True)
-    st.markdown('<p class="section-subtitle">CSV or Excel file</p>', unsafe_allow_html=True)
+st.markdown('<div id="cleaner" class="section-heading">Upload Your Dataset</div>', unsafe_allow_html=True)
+st.markdown('<p class="section-subtitle">CSV or Excel file</p>', unsafe_allow_html=True)
 
 with st.container(border=True):
     left_panel, right_panel = st.columns([1.05, 0.95], gap="large")
