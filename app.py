@@ -565,7 +565,7 @@ if active_section == "Account":
     account_cols = st.columns([1, 1], gap="large")
     with account_cols[0]:
         st.markdown("**New account**")
-        with st.form("account_form"):
+        with st.form("account_form", clear_on_submit=True):
             full_name = st.text_input("Full name")
             email = st.text_input("Email address")
             company = st.text_input("Company or project name")
@@ -587,7 +587,7 @@ if active_section == "Account":
                     st.success("Account created. You are signed in for this session.")
 
         st.markdown("**Already have an account?**")
-        with st.form("login_form"):
+        with st.form("login_form", clear_on_submit=True):
             login_email = st.text_input("Login email")
             login_password = st.text_input("Login password", type="password")
             login_submitted = st.form_submit_button("Sign In")
