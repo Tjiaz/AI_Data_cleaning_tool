@@ -115,18 +115,19 @@ def inject_styles() -> None:
                 font-size: 0.92rem;
                 font-weight: 650;
                 padding: 0.46rem 0.66rem;
-                text-decoration: none;
+                text-decoration: none !important;
             }
 
-            .nav-links a:hover {
+            .nav-links a:hover,
+            .trial-pill:hover {
                 background: #e8f6ef;
-                color: #14583c;
+                color: #14583c !important;
             }
 
             .trial-pill {
                 background: #e8f6ef;
                 border: 1px solid #b9dec8;
-                color: #14583c;
+                color: #14583c !important;
                 margin-left: 0.3rem;
             }
 
@@ -519,11 +520,10 @@ st.markdown(
     <nav class="top-nav">
         <div class="brand"><span class="brand-mark">CW</span> CleanWise</div>
         <div class="nav-links">
-            <a href="?section=Cleaner">Cleaner</a>
-            <a href="?section=Account">Account</a>
-            <a href="?section=Pricing">Pricing</a>
-            <a href="?section=Billing">Billing</a>
-            <span class="trial-pill">Free trial first</span>
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How it works</a>
+            <a href="?section=Account#account">Account</a>
+            <a class="trial-pill" href="?section=Pricing#pricing">Free trial</a>
         </div>
     </nav>
     <div class="announcement">Free trial available now. Upload, clean, preview, and export your first datasets without setup.</div>
@@ -532,10 +532,10 @@ st.markdown(
         <p>Turn messy CSV and Excel files into cleaner, analysis-ready datasets with guided recommendations, column controls, history, and one-click exports.</p>
         <div class="hero-actions">
             <a class="primary-cta" href="?section=Cleaner">Get started</a>
-            <a class="secondary-cta" href="?section=Pricing">View free trial</a>
+            <a class="secondary-cta" href="?section=Pricing#pricing">View free trial</a>
         </div>
     </section>
-    <section class="product-preview" aria-label="CleanWise product preview">
+    <section id="how-it-works" class="product-preview" aria-label="CleanWise product preview">
         <div class="preview-toolbar">
             <div class="preview-dots"><span></span><span></span><span></span></div>
             <div class="preview-label">Dataset quality preview</div>
@@ -554,7 +554,7 @@ st.markdown(
             </div>
         </div>
     </section>
-    <div class="feature-row">
+    <div id="features" class="feature-row">
         <div class="feature"><strong>Guided recommendations</strong><span>Spot duplicates, missing values, type issues, and whitespace before cleaning.</span></div>
         <div class="feature"><strong>Column-level control</strong><span>Choose exactly which columns to clean, drop, convert, or leave alone.</span></div>
         <div class="feature"><strong>Download-ready output</strong><span>Export cleaned data as CSV or Excel, with a local history of each run.</span></div>
