@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 from accounts import (
     TRIAL_DAYS,
@@ -129,6 +130,105 @@ def inject_styles() -> None:
                 border: 1px solid #b9dec8;
                 color: #14583c !important;
                 margin-left: 0.3rem;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.nav-bar-marker) {
+                align-items: center;
+                background: #ffffff;
+                border: 1px solid #e4ece7;
+                border-radius: 6px;
+                box-shadow: 0 8px 28px rgba(18, 61, 53, 0.06);
+                gap: 0.75rem;
+                margin: 0 auto 1rem;
+                max-width: 980px;
+                padding: 0.55rem 0.9rem 0.35rem;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.nav-bar-marker) > div[data-testid="column"]:nth-child(2) button,
+            div[data-testid="stHorizontalBlock"]:has(.nav-bar-marker) > div[data-testid="column"]:nth-child(3) button,
+            div[data-testid="stHorizontalBlock"]:has(.nav-bar-marker) > div[data-testid="column"]:nth-child(4) button {
+                background: transparent;
+                border: none;
+                box-shadow: none;
+                color: #2c453e !important;
+                font-size: 0.92rem;
+                font-weight: 650;
+                min-height: 0;
+                padding: 0.46rem 0.66rem;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.nav-bar-marker) > div[data-testid="column"]:nth-child(2) button:hover,
+            div[data-testid="stHorizontalBlock"]:has(.nav-bar-marker) > div[data-testid="column"]:nth-child(3) button:hover,
+            div[data-testid="stHorizontalBlock"]:has(.nav-bar-marker) > div[data-testid="column"]:nth-child(4) button:hover {
+                background: #e8f6ef;
+                color: #14583c !important;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.nav-bar-marker) > div[data-testid="column"]:nth-child(2) button p,
+            div[data-testid="stHorizontalBlock"]:has(.nav-bar-marker) > div[data-testid="column"]:nth-child(3) button p,
+            div[data-testid="stHorizontalBlock"]:has(.nav-bar-marker) > div[data-testid="column"]:nth-child(4) button p {
+                color: inherit !important;
+                font-size: 0.92rem;
+                font-weight: 650;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.nav-bar-marker) > div[data-testid="column"]:nth-child(5) button {
+                background: #e8f6ef;
+                border: 1px solid #b9dec8 !important;
+                color: #14583c !important;
+                font-size: 0.92rem;
+                font-weight: 650;
+                min-height: 0;
+                padding: 0.46rem 0.66rem;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.nav-bar-marker) > div[data-testid="column"]:nth-child(5) button:hover {
+                background: #dff0e6;
+                color: #14583c !important;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.nav-bar-marker) > div[data-testid="column"]:nth-child(5) button p {
+                color: inherit !important;
+                font-size: 0.92rem;
+                font-weight: 650;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.hero-actions-marker) {
+                justify-content: center;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.hero-actions-marker) div[data-testid="stHorizontalBlock"] div[data-testid="column"]:nth-child(1) button {
+                background: #1f7868;
+                border: none;
+                box-shadow: 0 16px 32px rgba(31, 120, 104, 0.22);
+                color: #ffffff !important;
+                font-size: 1rem;
+                font-weight: 750;
+                min-width: 170px;
+                padding: 0.9rem 1.25rem;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.hero-actions-marker) div[data-testid="stHorizontalBlock"] div[data-testid="column"]:nth-child(1) button p {
+                color: #ffffff !important;
+                font-weight: 750;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.hero-actions-marker) div[data-testid="stHorizontalBlock"] div[data-testid="column"]:nth-child(2) button {
+                background: transparent;
+                border: none;
+                border-bottom: 2px solid #c5d2cb;
+                border-radius: 0;
+                box-shadow: none;
+                color: #1f2a37 !important;
+                font-size: 1rem;
+                font-weight: 750;
+                min-width: auto;
+                padding: 0.9rem 0.25rem;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.hero-actions-marker) div[data-testid="stHorizontalBlock"] div[data-testid="column"]:nth-child(2) button p {
+                color: #1f2a37 !important;
+                font-weight: 750;
             }
 
             .hero {
@@ -493,7 +593,8 @@ def inject_styles() -> None:
                     grid-template-columns: 1fr;
                 }
 
-                .top-nav {
+                .top-nav,
+                div[data-testid="stHorizontalBlock"]:has(.nav-bar-marker) {
                     align-items: flex-start;
                     flex-direction: column;
                     margin-bottom: 2.4rem;
@@ -513,28 +614,98 @@ def inject_styles() -> None:
     )
 
 
+SECTIONS = ["Cleaner", "Account", "Pricing", "Billing"]
+
+
+def set_section(section: str) -> None:
+    if section not in SECTIONS:
+        section = "Cleaner"
+    st.query_params["section"] = section
+    st.rerun()
+
+
+def scroll_to_anchor(anchor: str) -> None:
+    st.session_state["scroll_to"] = anchor
+    if st.query_params.get("section", "Cleaner") != "Cleaner":
+        st.query_params["section"] = "Cleaner"
+    st.rerun()
+
+
+def render_top_nav() -> None:
+    brand_col, features_col, works_col, account_col, trial_col = st.columns(
+        [2.2, 0.9, 1.15, 0.85, 1],
+        gap="small",
+    )
+    with brand_col:
+        st.markdown(
+            '<span class="nav-bar-marker" hidden></span>'
+            '<div class="brand"><span class="brand-mark">CW</span> CleanWise</div>',
+            unsafe_allow_html=True,
+        )
+    with features_col:
+        if st.button("Features", key="nav_features", type="tertiary"):
+            scroll_to_anchor("features")
+    with works_col:
+        if st.button("How it works", key="nav_works", type="tertiary"):
+            scroll_to_anchor("how-it-works")
+    with account_col:
+        if st.button("Account", key="nav_account", type="tertiary"):
+            set_section("Account")
+    with trial_col:
+        if st.button("Free trial", key="nav_trial", type="tertiary"):
+            set_section("Pricing")
+
+
+def run_pending_scroll() -> None:
+    anchor = st.session_state.pop("scroll_to", None)
+    if not anchor:
+        return
+    components.html(
+        f"""
+        <script>
+            const doc = window.parent.document;
+            const target = doc.getElementById({anchor!r});
+            if (target) {{
+                target.scrollIntoView({{ behavior: "smooth", block: "start" }});
+            }}
+        </script>
+        """,
+        height=0,
+    )
+
+
 inject_styles()
+
+active_section = st.query_params.get("section", "Cleaner")
+if active_section not in SECTIONS:
+    active_section = "Cleaner"
+
+render_top_nav()
 
 st.markdown(
     """
-    <nav class="top-nav">
-        <div class="brand"><span class="brand-mark">CW</span> CleanWise</div>
-        <div class="nav-links">
-            <a href="#features">Features</a>
-            <a href="#how-it-works">How it works</a>
-            <a href="?section=Account#account">Account</a>
-            <a class="trial-pill" href="?section=Pricing#pricing">Free trial</a>
-        </div>
-    </nav>
     <div class="announcement">Free trial available now. Upload, clean, preview, and export your first datasets without setup.</div>
     <section class="hero">
         <h1>A cleaner way to prepare and trust your data</h1>
         <p>Turn messy CSV and Excel files into cleaner, analysis-ready datasets with guided recommendations, column controls, history, and one-click exports.</p>
-        <div class="hero-actions">
-            <a class="primary-cta" href="?section=Cleaner">Get started</a>
-            <a class="secondary-cta" href="?section=Pricing#pricing">View free trial</a>
-        </div>
     </section>
+    """,
+    unsafe_allow_html=True,
+)
+
+hero_btn_left, hero_btn_center, hero_btn_right = st.columns([1, 2, 1])
+with hero_btn_center:
+    st.markdown('<span class="hero-actions-marker" hidden></span>', unsafe_allow_html=True)
+    hero_start_col, hero_trial_col = st.columns(2, gap="medium")
+    with hero_start_col:
+        if st.button("Get started", key="hero_start", type="primary", use_container_width=True):
+            set_section("Cleaner")
+    with hero_trial_col:
+        if st.button("View free trial", key="hero_trial", type="secondary", use_container_width=True):
+            set_section("Pricing")
+
+st.markdown(
+    """
     <section id="how-it-works" class="product-preview" aria-label="CleanWise product preview">
         <div class="preview-toolbar">
             <div class="preview-dots"><span></span><span></span><span></span></div>
@@ -563,85 +734,34 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-SECTIONS = ["Cleaner", "Account", "Pricing", "Billing"]
-requested_section = st.query_params.get("section", "Cleaner")
-if requested_section not in SECTIONS:
-    requested_section = "Cleaner"
-
-active_section = st.radio(
-    "Site section",
-    SECTIONS,
-    index=SECTIONS.index(requested_section),
-    horizontal=True,
-    label_visibility="collapsed",
-    key=f"section_picker_{requested_section}",
-)
-
-if active_section != requested_section:
-    st.query_params["section"] = active_section
-    st.rerun()
+run_pending_scroll()
 
 if active_section == "Account":
-    st.markdown('<div id="account" class="section-heading">Create Your Account</div>', unsafe_allow_html=True)
-    st.markdown(
-        '<p class="section-subtitle">Create an account to save your trial plan, cleaning history, and billing preferences.</p>',
-        unsafe_allow_html=True,
-    )
-    st.info(f"Free Trial accounts can use the cleaner for {TRIAL_DAYS} days from account creation.")
-    account_cols = st.columns([1, 1], gap="large")
-    with account_cols[0]:
-        st.markdown("**New account**")
-        with st.form("account_form", clear_on_submit=True):
-            full_name = st.text_input("Full name")
-            email = st.text_input("Email address")
-            company = st.text_input("Company or project name")
-            password = st.text_input("Password", type="password")
-            submitted = st.form_submit_button("Create Account")
-            if submitted:
-                try:
-                    account = create_account(
-                        full_name=full_name,
-                        email=email,
-                        company=company,
-                        password=password,
-                        plan=st.session_state.get("selected_plan", "Free Trial"),
-                    )
-                except ValueError as exc:
-                    st.error(str(exc))
-                else:
-                    st.session_state["account"] = account
-                    st.success(f"Account created. Your {TRIAL_DAYS}-day free trial starts now.")
+    account = st.session_state.get("account")
 
-        st.markdown("**Already have an account?**")
-        with st.form("login_form", clear_on_submit=True):
-            login_email = st.text_input("Login email")
-            login_password = st.text_input("Login password", type="password")
-            login_submitted = st.form_submit_button("Sign In")
-            if login_submitted:
-                account = authenticate_account(login_email, login_password)
-                if account is None:
-                    st.error("Email or password is incorrect.")
-                else:
-                    st.session_state["account"] = account
-                    st.session_state["selected_plan"] = account.plan
-                    st.success("Signed in successfully.")
-    with account_cols[1]:
-        account = st.session_state.get("account")
-        if account:
-            full_name = getattr(account, "full_name", "")
-            email = getattr(account, "email", "")
-            company = getattr(account, "company", "")
-            plan = getattr(account, "plan", "Free Trial")
-            days_remaining = trial_days_remaining(account)
-            expires_at = trial_expires_at(account).strftime("%d %b %Y")
-            status_class = "trial-status" if can_use_cleaner(account) else "trial-status expired"
-            status_text = (
-                f"Free trial active: {days_remaining} day(s) remaining. Expires {expires_at}."
-                if can_use_cleaner(account)
-                else f"Free trial expired on {expires_at}. Choose Pro or Team to keep cleaning data."
-            )
-            if plan != "Free Trial":
-                status_text = f"{plan} plan active. Cleaner access is enabled."
+    if account:
+        full_name = getattr(account, "full_name", "")
+        email = getattr(account, "email", "")
+        company = getattr(account, "company", "")
+        plan = getattr(account, "plan", "Free Trial")
+        days_remaining = trial_days_remaining(account)
+        expires_at = trial_expires_at(account).strftime("%d %b %Y")
+        status_class = "trial-status" if can_use_cleaner(account) else "trial-status expired"
+        status_text = (
+            f"Free trial active: {days_remaining} day(s) remaining. Expires {expires_at}."
+            if can_use_cleaner(account)
+            else f"Free trial expired on {expires_at}. Choose Pro or Team to keep cleaning data."
+        )
+        if plan != "Free Trial":
+            status_text = f"{plan} plan active. Cleaner access is enabled."
+
+        st.markdown('<div id="account" class="section-heading">Your Account</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<p class="section-subtitle">Manage your profile, plan, and access to the data cleaner.</p>',
+            unsafe_allow_html=True,
+        )
+        profile_col, actions_col = st.columns([1.2, 0.8], gap="large")
+        with profile_col:
             st.markdown(
                 f"""
                 <div class="account-panel">
@@ -654,10 +774,64 @@ if active_section == "Account":
                 """,
                 unsafe_allow_html=True,
             )
-            if st.button("Sign Out", use_container_width=True):
+        with actions_col:
+            st.markdown("**Quick actions**")
+            if can_use_cleaner(account):
+                if st.button("Upload dataset", key="account_go_cleaner", use_container_width=True):
+                    set_section("Cleaner")
+            else:
+                if st.button("View plans", key="account_view_plans", use_container_width=True):
+                    set_section("Pricing")
+            if st.button("Sign Out", key="account_sign_out", use_container_width=True):
                 st.session_state.pop("account", None)
-                st.success("Signed out.")
-        else:
+                st.rerun()
+    else:
+        st.markdown('<div id="account" class="section-heading">Create Your Account</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<p class="section-subtitle">Create an account to save your trial plan, cleaning history, and billing preferences.</p>',
+            unsafe_allow_html=True,
+        )
+        st.info(f"Free Trial accounts can use the cleaner for {TRIAL_DAYS} days from account creation.")
+        account_cols = st.columns([1, 1], gap="large")
+        with account_cols[0]:
+            st.markdown("**New account**")
+            with st.form("account_form", clear_on_submit=True):
+                full_name = st.text_input("Full name")
+                email = st.text_input("Email address")
+                company = st.text_input("Company or project name")
+                password = st.text_input("Password", type="password")
+                submitted = st.form_submit_button("Create Account")
+                if submitted:
+                    try:
+                        account = create_account(
+                            full_name=full_name,
+                            email=email,
+                            company=company,
+                            password=password,
+                            plan=st.session_state.get("selected_plan", "Free Trial"),
+                        )
+                    except ValueError as exc:
+                        st.error(str(exc))
+                    else:
+                        st.session_state["account"] = account
+                        st.success(f"Account created. Your {TRIAL_DAYS}-day free trial starts now.")
+                        set_section("Cleaner")
+
+            st.markdown("**Already have an account?**")
+            with st.form("login_form", clear_on_submit=True):
+                login_email = st.text_input("Login email")
+                login_password = st.text_input("Login password", type="password")
+                login_submitted = st.form_submit_button("Sign In")
+                if login_submitted:
+                    account = authenticate_account(login_email, login_password)
+                    if account is None:
+                        st.error("Email or password is incorrect.")
+                    else:
+                        st.session_state["account"] = account
+                        st.session_state["selected_plan"] = account.plan
+                        st.success("Signed in successfully.")
+                        set_section("Cleaner")
+        with account_cols[1]:
             st.info("Create an account or sign in to personalize the app experience.")
     st.stop()
 
@@ -727,19 +901,15 @@ st.markdown('<p class="section-subtitle">CSV or Excel file</p>', unsafe_allow_ht
 current_account = st.session_state.get("account")
 if current_account is None:
     st.warning(f"Create an account to start your {TRIAL_DAYS}-day free trial before using the cleaner.")
-    st.markdown(
-        '<a class="primary-cta" href="?section=Account">Create Account</a>',
-        unsafe_allow_html=True,
-    )
+    if st.button("Create Account", key="cleaner_create_account", type="primary"):
+        set_section("Account")
     st.stop()
 
 if not can_use_cleaner(current_account):
     expires_at = trial_expires_at(current_account).strftime("%d %b %Y")
     st.error(f"Your {TRIAL_DAYS}-day free trial expired on {expires_at}. Upgrade to Pro or Team to keep cleaning data.")
-    st.markdown(
-        '<a class="primary-cta" href="?section=Pricing">View Plans</a>',
-        unsafe_allow_html=True,
-    )
+    if st.button("View Plans", key="cleaner_view_plans", type="primary"):
+        set_section("Pricing")
     st.stop()
 
 if current_account.plan == "Free Trial":
